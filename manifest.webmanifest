@@ -1,0 +1,10 @@
+{
+  "name": "מלאקיי",
+  "short_name": "מלאקיי",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e9e6e1",
+  "theme_color": "#e9e6e1",
+  "lang": "he",
+  "dir": "rtl"
+}

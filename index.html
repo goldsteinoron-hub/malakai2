@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e9e6e1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="מלאקיי">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>מלאקיי</title>
+<style>
+:root{color-scheme:light;--bg:#e9e6e1;--fg:#23211f;--muted:#6d6862;--shell:#6f7479;--edge:#565b60;--screen:#050606;--ink:#f4f6f2;--lime:#c8f23a;--blue:#2f7df6;--panel:#f6f4f0;--line:#d4d0c9;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Arial",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);padding:calc(22px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));min-height:100vh}
+main{max-width:480px;margin:auto;display:flex;flex-direction:column;gap:18px}header h1{font-size:30px;margin:0;font-weight:850}header p{font-size:16px;line-height:1.45;color:var(--muted);margin:4px 0 0}
+.device{display:flex;direction:ltr;background:var(--shell);border-radius:25px;padding:18px;box-shadow:inset 0 0 0 2px var(--edge),0 18px 40px #0003;align-items:stretch;transition:transform .15s}
+.screen{flex:1;min-width:0;aspect-ratio:4/3;background:var(--screen);border-radius:12px;position:relative;overflow:hidden;box-shadow:inset 0 0 0 3px #1c1e20;color:var(--ink);direction:rtl}
+.side{width:38px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:15px}
+.sbtn{width:15px;height:58px;border-radius:8px;background:var(--blue);border:0;padding:0;box-shadow:inset 0 0 0 2px #0003;cursor:pointer;touch-action:manipulation}
+.sbtn.alt{height:38px;background:#9aa0a6}.sbtn:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+.view{position:absolute;inset:0;padding:25px 14px 12px;display:none}.view.on{display:block}#v-face{display:none;flex-direction:column;padding:20px 12px 8px}#v-face.on{display:flex}
+svg.face{width:100%;flex:1;min-height:0}.bubble{flex:0 0 auto;max-height:38%;overflow:auto;text-align:center;font-weight:750;font-size:clamp(13px,3.4vw,16px);color:var(--lime);line-height:1.3;padding-top:5px}
+.batt{position:absolute;top:8px;left:10px;font:700 11px ui-monospace,monospace;color:var(--lime)}
+.list{list-style:none;margin:0;padding:0;font-size:clamp(12px,3.4vw,15px);display:flex;flex-direction:column;gap:8px}.list li{line-height:1.35}.list .mono{font-family:monospace;color:var(--lime)}
+.done{opacity:.5;text-decoration:line-through}
+.ctl{display:flex;gap:10px}.b{font:650 16px system-ui;padding:12px 17px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);cursor:pointer;touch-action:manipulation}.b.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.ask{display:flex;gap:9px}.t{flex:1;min-width:0;font:16px system-ui;padding:12px 14px;border-radius:13px;border:1px solid var(--line);background:var(--panel);color:var(--fg)}.note{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+.dots{display:flex;gap:6px;justify-content:center}.dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--fg)}
+@keyframes wobble{0%,100%{transform:translate(0,0) rotate(0)}15%{transform:translate(-7px,2px) rotate(-4deg)}30%{transform:translate(7px,-2px) rotate(4deg)}45%{transform:translate(-6px,1px) rotate(-3deg)}60%{transform:translate(5px,-1px) rotate(3deg)}75%{transform:translate(-3px,0) rotate(-1deg)}}
+.device.shaking{animation:wobble .65s ease-in-out}
+@keyframes hop{0%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}}
+.device.hopping{animation:hop .35s ease}
+@media(prefers-reduced-motion:reduce){.device.shaking,.device.hopping{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>מלאקיי</h1><p>החבר הקטן שלך בכיס. דבר איתו, תן לו להשתגע כשמנערים את הטלפון, והוא יזכור דברים שחשובים לך.</p></header>
+<div class="device" id="device">
+ <div class="screen" aria-live="polite">
+  <span class="batt">100%</span>
+  <section class="view on" id="v-face"><svg class="face" id="face" viewBox="0 0 240 150" aria-label="הפנים של מלאקיי"></svg><div class="bubble" id="bubble">היי, אני מלאקיי</div></section>
+  <section class="view" id="v-memory"><div style="font-weight:800;margin-bottom:10px">מה מלאקיי זוכר עליך</div><ul class="list" id="mem"></ul></section>
+ </div>
+ <div class="side"><button class="sbtn" id="talk" aria-label="הפעל ודבר עם מלאקיי"></button><button class="sbtn alt" id="screen" aria-label="החלף מסך"></button></div>
+</div>
+<div class="dots" id="dots" aria-hidden="true"></div>
+<div class="ctl"><button class="b" id="forget">שכח הכול</button></div>
+<form class="ask" id="ask"><input class="t" id="q" placeholder="תגיד משהו למלאקיי…" autocomplete="off"><button class="b primary" id="send" type="submit">שלח</button></form>
+<p class="note" id="status">אפשר לדבר בהקלדה או ללחוץ על הכפתור הכחול כדי לדבר. בפעם הראשונה ייתכן שתתבקש לאשר מיקרופון ותנועה.</p>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id), STORE='malakai.v3.';
+const load=(k,d)=>{try{const x=localStorage.getItem(STORE+k);return x===null?d:JSON.parse(x)}catch{return d}};
+const save=(k,v)=>{try{localStorage.setItem(STORE+k,JSON.stringify(v))}catch{}};
+let facts=load('facts',[]), history=load('history',[]), last=load('last',0);
+let muted=false,busy=false,view=0,recognition=null,listening=false,motionOn=false,lastShake=0,previous=null;
+let mood='normal',look=0,blink=false;
+const white='#f4f6f2';
+function eye(cx){const cy=70;if(blink||mood==='sleepy')return `<path d="M${cx-24} ${cy} Q${cx} ${cy+10} ${cx+24} ${cy}" stroke="${white}" stroke-width="7" fill="none" stroke-linecap="round"/>`;if(mood==='happy')return `<path d="M${cx-24} ${cy+8} Q${cx} ${cy-26} ${cx+24} ${cy+8}" stroke="${white}" stroke-width="7" fill="none" stroke-linecap="round"/>`;if(mood==='dizzy')return `<path d="M${cx-18} ${cy-14} L${cx+18} ${cy+14} M${cx+18} ${cy-14} L${cx-18} ${cy+14}" stroke="${white}" stroke-width="7" stroke-linecap="round"/>`;const px=cx+look*8;return `<circle cx="${cx}" cy="${cy}" r="26" fill="${white}"/><circle cx="${px}" cy="${cy}" r="11" fill="#050606"/>`}
+function draw(){let mouth=mood==='happy'?'<path d="M100 112 Q120 132 140 112" stroke="'+white+'" stroke-width="6" fill="none" stroke-linecap="round"/>':mood==='dizzy'?'<path d="M100 120 Q108 110 116 120 T132 120 T148 120" stroke="'+white+'" stroke-width="6" fill="none" stroke-linecap="round"/>':mood==='sleepy'?'<ellipse cx="120" cy="118" rx="7" ry="5" fill="'+white+'"/>':'<path d="M106 114 Q120 122 134 114" stroke="'+white+'" stroke-width="6" fill="none" stroke-linecap="round"/>';$('face').innerHTML=eye(72)+eye(168)+mouth}
+function setMood(m,ms=0){mood=m;draw();if(ms){clearTimeout(setMood.timer);setMood.timer=setTimeout(()=>{mood='normal';draw()},ms)}}
+function speak(t){if(muted||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='he-IL';u.pitch=1.18;u.rate=.96;const v=speechSynthesis.getVoices().find(x=>/^he/i.test(x.lang));if(v)u.voice=v;speechSynthesis.speak(u)}catch{}}
+function say(t,quiet=false){$('bubble').textContent=t;if(!quiet)speak(t)}
+function show(n){view=(n+2)%2;['face','memory'].forEach((x,i)=>$('v-'+x).classList.toggle('on',i===view));[...$('dots').children].forEach((x,i)=>x.classList.toggle('on',i===view));if(view)renderMemory()}
+function renderMemory(){const ul=$('mem');ul.replaceChildren();if(!facts.length){const li=document.createElement('li');li.textContent='עוד לא סיפרת לי דברים לשמור. דבר איתי!';ul.append(li)}facts.forEach(f=>{const li=document.createElement('li');li.textContent='• '+f;ul.append(li)})}
+for(let i=0;i<2;i++)$('dots').append(document.createElement('i'));show(0);draw();
+setInterval(()=>{if(mood==='normal'||mood==='think'){look=[-1,0,1,0][Math.floor(Math.random()*4)];draw()}},1600);
+(function blinkLoop(){setTimeout(()=>{blink=true;draw();setTimeout(()=>{blink=false;draw();blinkLoop()},130)},2200+Math.random()*2500)})();
+$('screen').onclick=()=>show(view+1);
+$('forget').onclick=()=>{history=[];save('history',history);show(0);setMood('happy',2000);say('שיחה חדשה! אני עדיין זוכר אותך 😊')};
+function reactShake(){const now=Date.now();if(now-lastShake<1200)return;lastShake=now;const d=$('device');d.classList.remove('shaking');void d.offsetWidth;d.classList.add('shaking');setMood('dizzy',1800);say(['אחחח! מה אתה עושה 😂','וואי, סחרחורת!','די לנער אותי, אני עוד שנייה עף','חחחח תירגע, אני פה!'][Math.floor(Math.random()*4)])}
+function motion(e){let a=e.accelerationIncludingGravity||e.acceleration;if(!a)return;let x=a.x||0,y=a.y||0,z=a.z||0;if(previous){let dx=x-previous.x,dy=y-previous.y,dz=z-previous.z;if(Math.hypot(dx,dy,dz)>13)reactShake()}previous={x,y,z}}
+function enableMotion(){if(motionOn)return;const D=window.DeviceMotionEvent;if(!D){$('status').textContent='זיהוי תנועה לא נתמך בדפדפן הזה. פתח ב-Safari.';return}const req=D.requestPermission;if(typeof req==='function'){req.call(D).then(v=>{if(v==='granted'){window.addEventListener('devicemotion',motion,{passive:true});motionOn=true;$('status').textContent='זיהוי ניעור פועל! נסה לנער את האייפון.'}else $('status').textContent='צריך לאשר גישה לתנועה.'}).catch(()=>$('status').textContent='לא הצלחתי להפעיל תנועה. פתח את האתר ב-Safari דרך HTTPS.')}else{window.addEventListener('devicemotion',motion,{passive:true});motionOn=true;$('status').textContent='זיהוי ניעור פועל!'}}
+function startListening(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('status').textContent='הדפדפן לא תומך בזיהוי דיבור. אפשר להקליד למטה.';$('q').focus();return}if(listening&&recognition){recognition.stop();return}recognition=new SR();recognition.lang='he-IL';recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onstart=()=>{listening=true;setMood('happy');say('מקשיב לך...',true)};recognition.onresult=e=>{const t=e.results[0][0].transcript.trim();if(t)chat(t)};recognition.onerror=e=>{$('status').textContent='המיקרופון לא פעל ('+e.error+'). אפשר להקליד במקום.';listening=false;setMood('normal')};recognition.onend=()=>{listening=false};try{recognition.start()}catch{$('q').focus()}}
+$('talk').onclick=()=>{enableMotion();startListening()};
+async function chat(userText){if(busy)return;busy=true;$('send').disabled=true;show(0);setMood('think');say('רגע, חושב...',true);const messages=history.slice(-12).concat([{role:'user',content:userText}]);try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages,facts,lastSeen:last})});if(!r.ok)throw new Error('HTTP '+r.status);const data=await r.json();const answer=(data.text||'').trim();if(!answer)throw new Error('empty response');history.push({role:'user',content:userText},{role:'assistant',content:answer});history=history.slice(-24);save('history',history);if(data.remember&&typeof data.remember==='string'&&data.remember.trim()&&!facts.includes(data.remember.trim())){facts.push(data.remember.trim());facts=facts.slice(-20);save('facts',facts)}last=Date.now();save('last',last);setMood(['happy','sleepy','normal'].includes(data.mood)?data.mood:'normal',5000);say(answer)}catch(e){say('אופס, לא הצלחתי להתחבר למוח שלי כרגע. אפשר לנסות שוב עוד רגע.');$('status').textContent='חיבור ה-AI עדיין לא הוגדר באתר. צריך לפרוס את שרת ה-AI ולהוסיף מפתח סודי.';setMood('sleepy',2500)}finally{busy=false;$('send').disabled=false}}
+$('ask').addEventListener('submit',e=>{e.preventDefault();const t=$('q').value.trim();if(!t||busy)return;$('q').value='';chat(t)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&window.speechSynthesis)speechSynthesis.cancel()});
+})();
+</script>
+</body></html>
